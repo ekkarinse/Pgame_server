@@ -1,0 +1,4 @@
+{
+    "SELECTusers":"SELECT * FROM `users` WHERE id=$1;",
+    "insertUser":"INSERT INTO `users` (id, firstname, lastname, username, password) VALUES (?, ?, ?, ?, ?);"
+}

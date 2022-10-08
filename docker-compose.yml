@@ -1,0 +1,42 @@
+
+version: "3.9"
+services:
+
+  db:
+    image: mysql:5.7
+    container_name: my_database
+    command: --default-authentication-plugin=mysql_native_password 
+    restart: always
+    ports: 
+      - 3306:3306
+    environment:
+       MYSQL_ROOT_PASSWORD: mypassword
+    volumes:
+     - ./var/lib:/var/lib/mysql
+    networks:
+      - api_network
+
+  phpmyadmin:
+    container_name: my_phpmyadmin
+    image: phpmyadmin:5.0.4-apache
+    restart: always
+    links:
+      - db
+    ports:
+      - 8080:80
+    environment:
+      - PMA_HOST=db
+    networks:
+      - api_network
+
+  redis:
+    container_name: my_redis
+    image: "redis:alpine"
+    restart: always
+    ports:
+      - 6379:80
+    networks:
+      - api_network
+
+networks:
+  api_network:
