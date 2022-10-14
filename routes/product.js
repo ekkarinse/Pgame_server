@@ -9,6 +9,8 @@ const mysql = require('mysql');
 const Query_product = require('../query/queryProduct');
 const _Queryproduct = new Query_product();
 var {v4: uuidv4} = require("uuid");
+const _auth = require('./middleware/auth');
+
 router.use(cors());
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -16,7 +18,7 @@ router.use(express.json());
 router.use(express.urlencoded({ extended: false }));
 
 
-router.get('/select_whey',function(req,res,next){   
+router.get('/select_whey',_auth,function(req,res,next){   
     
     let query = connection.query(_Queryproduct.selectWhey(),(err, results)=>{
         if(err) throw err;
@@ -26,7 +28,7 @@ router.get('/select_whey',function(req,res,next){
     
 }); // select_whey 
 
-router.get('/select_member',function(req,res,next){   
+router.get('/select_member',_auth,function(req,res,next){   
     
     let query = connection.query(_Queryproduct.selectMember(),(err, results)=>{
         if(err) throw err;

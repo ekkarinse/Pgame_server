@@ -17,7 +17,7 @@ class User_query {
         
         insertUser(){
 
-            return "INSERT INTO `users` (id, firstname, lastname, username, password, email, phone_number, age, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+            return "INSERT INTO `users` (id, firstname, lastname, username, password, email, phone_number, age, role, Token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         }
         Check_users(){
 
@@ -56,6 +56,7 @@ class User_query {
 
             return "SELECT * FROM `users` WHERE username=?;";
         }
+     
 
 }
 module.exports = User_query

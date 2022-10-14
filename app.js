@@ -12,9 +12,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 var usersRouter = require("./routes/users");
+var productRouter = require("./routes/product");
 
 
 
+app.use("/product", productRouter);
 app.use("/users", usersRouter);
 
 app.listen(process.env.PORT, () => console.log("server is run on port :", `${process.env.PORT}`));

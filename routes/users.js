@@ -2,6 +2,16 @@ var express = require('express');
 var router = express.Router();
 const cors = require("cors");
 const bodyParser = require("body-parser");
+
+
+
+var app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 const connection = require("../dbconnect");
 const dotenv = require('dotenv').config();
 const mysql = require('mysql');
@@ -11,6 +21,7 @@ const Queryusers = require('../query/queryUser');
 const _Queryusers = new Queryusers();
 var {v4: uuidv4} = require("uuid");
 var jwt = require('jsonwebtoken');
+const _auth = require('./middleware/auth');
 var secret = "samza55wysfsa";
 
 
@@ -43,7 +54,7 @@ router.get('/getuser',function(req,res,next){
     
 }); // getuser
 
-router.get('/selectMember',function(req,res,next){   
+router.get('/selectMember',_auth,function(req,res,next){   
     
     let query = connection.query(_Queryusers.selectMember(),(err, results)=>{
         if(err) throw err;
@@ -53,7 +64,7 @@ router.get('/selectMember',function(req,res,next){
     
 }); // select all member
 
-router.post('/insertTrainer',function(req,res,next){   
+router.post('/insertTrainer',_auth,function(req,res,next){   
     const {users_id, detail, hire_price, hire_date} = req.body
     let query = connection.query(_Queryusers.insertTrainer(),[
         uuidv4(),
@@ -97,7 +108,7 @@ router.post('/insertWhey',function(req,res,next){
     
 }); // insert whey
 
-router.get('/select_trainer_all',function(req,res,next){   
+router.get('/select_trainer_all',_auth,function(req,res,next){   
     
     let query = connection.query(_Queryusers.select_trainer_detail(),(err, results)=>{
         if(err) throw err;
@@ -122,7 +133,7 @@ router.post('/insertHistory',function(req,res,next){
 
 }); // insert buy history
 
-router.post('/selectHistory',function(req,res,next){   
+router.post('/selectHistory',_auth,function(req,res,next){   
     const {users_id} = req.body
     let query = connection.query(_Queryusers.select_history(),[users_id],(err, results)=>{
         if(err) throw err;
@@ -132,7 +143,7 @@ router.post('/selectHistory',function(req,res,next){
 
 }); // insert buy history
 
-router.get('/selectBuy_history',function(req,res,next){   
+router.get('/selectBuy_history',_auth,function(req,res,next){   
     const {users_id, buy_list, product_price} = req.body
     let query = connection.query(_Queryusers.select_trainer_detail(),(err, results)=>{
         if(err) throw err;
@@ -143,7 +154,7 @@ router.get('/selectBuy_history',function(req,res,next){
 }); // select_trainer_all
 
 router.post('/postusers', (req,res,next) =>{   
-    const {firstname, lastname, username, password, email, phone_number, age, role} = req.body
+    const {firstname, lastname, username, password, email, phone_number, age, role, Token} = req.body
     
         try {
             let data = connection.query("SELECT username, email, phone_number FROM users WHERE username=? OR email=? OR phone_number=? ;", [username, email, phone_number], (err, results) => {
@@ -165,6 +176,7 @@ router.post('/postusers', (req,res,next) =>{
                         phone_number,
                         age,
                         role,
+                        Token
                     ], (err, rr) => {
                         if (err)
                             throw err;
@@ -194,7 +206,7 @@ router.post('/login', (req, res)=>{
 
         if(err){res.json ({status: 'error', message: err}); return}
         if(users.lenght == 0){res.json({status: 'error', message: 'no user found'}); return}
-
+       
         if(password === crypto.decrypt( users[0].password)) {
  
                 var token = jwt.sign({ 
@@ -203,12 +215,13 @@ router.post('/login', (req, res)=>{
                     firstname:  users[0].firstname,
                     lastname:  users[0].lastname,    
                 }, secret, {expiresIn: '1h'});
-                res.json({status: 'Ok', message: 'login success', token});
+
+                connection.query("UPDATE users SET Token=? WHERE username=?;",[token, users[0].username]);
+                res.json({status: 'Ok', message: 'login successfully', token});
             }else{
                 res.json({status: 'error', message: 'login failed'});
         }
     });
-
 
 });
 
@@ -223,6 +236,10 @@ router.post('/authen', (req, res)=>{
         res.json({status: 'error', message: err.message});
     }
 
-
 });
+
+router.post('/welcome', _auth ,(req, res)=>{
+
+    res.status(200).send('Welcome');
+})
 module.exports = router;
