@@ -203,11 +203,12 @@ router.post('/postusers', (req,res,next) =>{
 router.post('/login', (req, res)=>{
     const {username, password} = req.body
     connection.query(_Queryusers.select_login(),[username],(err, users)=>{
-
+        try{ 
+        if(!err){
         if(err){res.json ({status: 'error', message: err}); return}
         if(users.lenght == 0){res.json({status: 'error', message: 'no user found'}); return}
        
-        if(password === crypto.decrypt( users[0].password)) {
+        if(password === crypto.decrypt( users[0].password) && username === users[0].username) {
  
                 var token = jwt.sign({ 
                     username: users[0].username, 
@@ -220,9 +221,16 @@ router.post('/login', (req, res)=>{
                 res.json({status: 'Ok', message: 'login successfully', token});
             }else{
                 res.json({status: 'error', message: 'login failed'});
+            }
+        }else{
+            res.json({status: 'error', message: err });
+            res.json({status: 'error', message: 'login failed'});
         }
-    });
-
+        }
+    catch(err){
+        res.json({status: 'error', message: ' failed'});
+        }
+    })
 });
 
 
