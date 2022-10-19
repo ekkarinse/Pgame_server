@@ -105,11 +105,11 @@ router.post('/insertWhey',function(req,res,next){
     
 }); // insert whey
 
-router.get('/select_trainer_all',_auth,function(req,res,next){   
+router.get('/select_trainer_all',function(req,res,next){   
     
     let query = connection.query(_Queryusers.select_trainer_detail(),(err, results)=>{
         if(err) throw err;
-        res.send(results);
+        res.json(results);
         console.log(results);
     });    
     
