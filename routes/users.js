@@ -2,8 +2,8 @@ var express = require('express');
 var router = express.Router();
 const cors = require("cors");
 const bodyParser = require("body-parser");
-
-
+var cookieSession = require('cookie-session')
+const cookieParser = require("cookie-parser");
 
 var app = express();
 app.use(cors());
@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use(cookieParser());
 const connection = require("../dbconnect");
 const dotenv = require('dotenv').config();
 const mysql = require('mysql');
@@ -24,18 +24,15 @@ var jwt = require('jsonwebtoken');
 const _auth = require('./middleware/auth');
 var secret = "samza55wysfsa";
 
-
+router.use(cookieParser());
 router.use(cors());
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(express.json());
 router.use(express.urlencoded({ extended: false }));
-
     
-connection.query(`SELECT NOW();`,(err, results)=>{
-     if(err) throw err;
-        console.log("connect database-->",results);
-            
+connection.query(`SELECT NOW();`,(err)=>{
+     if (err) throw err;  
 });  //เช็คการเชื่อมต่อกับ database  
     
 
@@ -154,8 +151,10 @@ router.get('/selectBuy_history',_auth,function(req,res,next){
 }); // select_trainer_all
 
 router.post('/postusers', (req,res,next) =>{   
-    const {firstname, lastname, username, password, email, phone_number, age, role, Token} = req.body
-    
+    const {firstname, lastname, username, password,repassword, email, phone_number, age, role= "ลูกค้า", Token} = req.body
+        if(password != repassword){
+            res.json({status: 'error', message: 'mismatch password'});
+        }
         try {
             let data = connection.query("SELECT username, email, phone_number FROM users WHERE username=? OR email=? OR phone_number=? ;", [username, email, phone_number], (err, results) => {
 
@@ -180,15 +179,12 @@ router.post('/postusers', (req,res,next) =>{
                     ], (err, rr) => {
                         if (err)
                             throw err;
-                        res.send("Add user success!");
-                        console.log("Add user success!");
-                        res.status(200).json(rr);
+                        res.json({status: 'Ok', message: 'register successfully'});
 
                     });
                     // console.log(results);
                 } else {
-                    console.log("register fail");
-                    res.send("register fail");
+                    res.json({status: 'error', message: 'register failed'});
 
                 }
             });
@@ -209,7 +205,6 @@ router.post('/login', (req, res)=>{
         if(users.lenght == 0){res.json({status: 'error', message: 'no user found'}); return}
        
         if(password === crypto.decrypt( users[0].password) && username === users[0].username) {
- 
                 var token = jwt.sign({ 
                     username: users[0].username, 
                     password: users[0].password,
@@ -218,6 +213,7 @@ router.post('/login', (req, res)=>{
                 }, secret, {expiresIn: '1h'});
 
                 connection.query("UPDATE users SET Token=? WHERE username=?;",[token, users[0].username]);
+                // res.session(username,password, token);
                 res.json({status: 'Ok', message: 'login successfully', token});
             }else{
                 res.json({status: 'error', message: 'login failed'});
@@ -250,4 +246,8 @@ router.post('/welcome', _auth ,(req, res)=>{
 
     res.status(200).send('Welcome');
 })
+
+
+
+  
 module.exports = router;
