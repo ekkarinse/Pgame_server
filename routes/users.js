@@ -231,8 +231,10 @@ router.post('/login', (req, res)=>{
 
 
 router.post('/authen', (req, res)=>{
+
     try{
-    const token = req.headers.authorization.split(' ')[1]
+        const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
     var decoded = jwt.verify(token, secret);
     res.json({status: 'Ok',decoded});
     }catch(err){

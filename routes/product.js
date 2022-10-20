@@ -18,11 +18,11 @@ router.use(express.json());
 router.use(express.urlencoded({ extended: false }));
 
 
-router.get('/select_whey',_auth,function(req,res,next){   
+router.get('/select_whey',function(req,res,next){   
     
     let query = connection.query(_Queryproduct.selectWhey(),(err, results)=>{
         if(err) throw err;
-        res.send(results);
+        res.json(results);
         console.log(results);
     });    
     
@@ -32,7 +32,7 @@ router.get('/select_member',_auth,function(req,res,next){
     
     let query = connection.query(_Queryproduct.selectMember(),(err, results)=>{
         if(err) throw err;
-        res.send(results);
+        res.json(results);
         console.log(results);
     });    
     
