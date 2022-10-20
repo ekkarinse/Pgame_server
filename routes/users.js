@@ -51,7 +51,7 @@ router.get('/getuser',function(req,res,next){
     
 }); // getuser
 
-router.get('/selectMember',_auth,function(req,res,next){   
+router.get('/selectMember',function(req,res,next){   
     
     let query = connection.query(_Queryusers.selectMember(),(err, results)=>{
         if(err) throw err;
@@ -115,7 +115,8 @@ router.get('/select_trainer_all',function(req,res,next){
     
 }); // select_trainer_all
 
-router.post('/insertHistory',function(req,res,next){   
+router.post('/insertHistory',function(req,res,next){ 
+    try{  
     const {users_id, buy_list, product_price} = req.body
     let query = connection.query(_Queryusers.insert_history(),[
         uuidv4(),
@@ -124,9 +125,12 @@ router.post('/insertHistory',function(req,res,next){
         product_price
     ],(err, results)=>{
         if(err) throw err;
-        res.send(results);
+        res.json(results);
         console.log(results);
-    });   
+    }); 
+}catch(err){
+    console.log(err);
+}  
 
 }); // insert buy history
 
@@ -206,12 +210,13 @@ router.post('/login', (req, res)=>{
        
         if(password === crypto.decrypt( users[0].password) && username === users[0].username) {
                 var token = jwt.sign({ 
+                    users_id: users[0].id,
                     username: users[0].username, 
                     password: users[0].password,
                     firstname:  users[0].firstname,
                     lastname:  users[0].lastname,    
                 }, secret, {expiresIn: '1h'});
-
+               
                 connection.query("UPDATE users SET Token=? WHERE username=?;",[token, users[0].username]);
                 // res.session(username,password, token);
                 res.json({status: 'Ok', message: 'login successfully', token});
@@ -236,6 +241,7 @@ router.post('/authen', (req, res)=>{
         const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
     var decoded = jwt.verify(token, secret);
+    
     res.json({status: 'Ok',decoded});
     }catch(err){
 
